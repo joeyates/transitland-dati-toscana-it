@@ -191,9 +191,35 @@ end
 
 catalog = ExDataCatalog.load(source_path)
 
+supersedes_ids = %{
+  "trenitaliaspa" => ["f-sp-trenitaliaspa"],
+  "urbanopiombino" => ["f-spx-tiemmespa"],
+  "extraurbanoprato" => ["f-spz-capconsorzioautolineepratesi"],
+  "extraurbanopisa" => ["f-spz-consorziopisanotrasporti"],
+  "extraurbanolivorno" => ["f-spz-cttnord"],
+  "extraurbanolucca" => ["f-spz-vaibus"],
+  "extraurbanofirenze" => [
+    "f-spzb-piùbus",
+    "f-srb-autolineemugellovaldisieve",
+    "f-srb0-autolineechiantivaldarno"
+  ],
+  "extraurbanoarezzo" => ["f-sr8-etruriamobilità"],
+  "extraurbanosiena" => ["f-sr8-sienamobilità"]
+}
+
 feeds =
   Enum.map(catalog.distributions, fn distribution ->
     Feed.dmfr(distribution.access_url)
+  end)
+  |> Enum.map(fn dmfr ->
+    name = DMFR.name(dmfr)
+    supersedes = supersedes_ids[name]
+
+    if supersedes do
+      struct!(dmfr, supersedes_ids: supersedes)
+    else
+      dmfr
+    end
   end)
 
 dmfr =
