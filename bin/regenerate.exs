@@ -129,6 +129,7 @@ defmodule Feed do
 
   defp ensure_download(url) do
     zip_path = Downloads.path(url)
+
     if !File.exists?(zip_path) do
       Logger.debug("Downloading: #{url}")
       Fetcher.fetch(url, zip_path)
@@ -137,6 +138,7 @@ defmodule Feed do
 
   defp ensure_extracted(url) do
     extracted_path = Downloads.extracted_path(url)
+
     if !File.exists?(extracted_path) do
       zip_path = Downloads.path(url)
       Logger.debug("Extracting: #{zip_path}")
@@ -153,8 +155,10 @@ defmodule Feed do
   defp geohash(url) do
     {{min_lat, min_lon}, {max_lat, max_lon}} =
       bounds(url)
+
     bottom_left_geohash = Geohash.encode(min_lat, min_lon)
     top_right_geohash = Geohash.encode(max_lat, max_lon)
+
     case LongestCommonPrefix.find(bottom_left_geohash, top_right_geohash) do
       "" -> @default_geohash
       common_prefix -> common_prefix
@@ -166,10 +170,10 @@ defmodule Feed do
     |> Downloads.stops_path()
     |> File.stream!()
     |> CSV.decode!(headers: true)
-    |> Stream.map(& {&1["stop_lat"] |> String.to_float(), &1["stop_lon"] |> String.to_float()})
+    |> Stream.map(&{&1["stop_lat"] |> String.to_float(), &1["stop_lon"] |> String.to_float()})
     |> Enum.to_list()
     |> Enum.reduce(
-      {{Float.max_finite, Float.max_finite}, {Float.min_finite, Float.min_finite}},
+      {{Float.max_finite(), Float.max_finite()}, {Float.min_finite(), Float.min_finite()}},
       fn {lat, lon}, {{min_lat, min_lon}, {max_lat, max_lon}} ->
         {{min(min_lat, lat), min(min_lon, lon)}, {max(max_lat, lat), max(max_lon, lon)}}
       end
@@ -179,6 +183,7 @@ end
 
 source_url = "https://dati.toscana.it/dataset/rt-oraritb.xml"
 source_path = Downloads.path(source_url)
+
 if !File.exists?(source_path) do
   Logger.debug("Downloading source data: #{source_url}")
   Fetcher.fetch(source_url, source_path)
