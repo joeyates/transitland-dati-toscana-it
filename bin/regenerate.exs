@@ -2,13 +2,16 @@
 
 require Logger
 
-Mix.install([
-  {:csv, ">= 0.0.0"},
-  {:ex_data_catalog, ">= 0.0.0"},
-  {:geohash, "~> 1.0"},
-  {:jason, ">= 0.0.0"},
-  {:req, ">= 0.0.0"}
-])
+Mix.install(
+  [
+    {:csv, ">= 0.0.0"},
+    {:ex_data_catalog, ">= 0.0.0"},
+    {:geohash, "~> 1.0"},
+    {:jason, ">= 0.0.0"},
+    {:req, ">= 0.0.0"}
+  ],
+  consolidate_protocols: false
+)
 
 Application.ensure_started(:geohash)
 
