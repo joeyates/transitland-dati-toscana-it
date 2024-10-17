@@ -65,9 +65,56 @@ defmodule Zip do
   end
 end
 
-defmodule Feed do
-  @enforce_keys [:url]
-  defstruct [:url]
+defmodule DMFR do
+  @enforce_keys [:id, :urls]
+  defstruct id: nil,
+            urls: nil,
+            license: %{
+              use_without_attribution: "no",
+              create_derived_product: "yes",
+              attribution_text: "https://dati.toscana.it/"
+            },
+            tags: %{
+              unstable_url: "true"
+            },
+            operators: nil,
+            supersedes_ids: nil
+
+  def name(%DMFR{} = dmfr) do
+    dmfr.id
+    |> String.split("-")
+    |> Enum.at(-1)
+  end
+
+  defimpl Jason.Encoder do
+    def encode(dmfr, opts) do
+      json = %{
+        id: dmfr.id,
+        spec: "gtfs",
+        urls: dmfr.urls,
+        license: dmfr.license,
+        tags: dmfr.tags
+      }
+
+      json =
+        if dmfr.operators do
+          Map.put(json, :operators, dmfr.operators)
+        else
+          json
+        end
+
+      json =
+        if dmfr.supersedes_ids do
+          Map.put(json, :supersedes_ids, dmfr.supersedes_ids)
+        else
+          json
+        end
+
+      json
+      |> Jason.Encode.map(opts)
+    end
+  end
+end
 
   @feed_prefix "f"
   @default_geohash "s"
