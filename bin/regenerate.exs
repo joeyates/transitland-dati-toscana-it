@@ -116,6 +116,7 @@ defmodule DMFR do
   end
 end
 
+defmodule Feed do
   @feed_prefix "f"
   @default_geohash "s"
 
@@ -123,21 +124,7 @@ end
     ensure_download(url)
     ensure_extracted(url)
 
-    %{
-      id: id(url),
-      spec: "gtfs",
-      urls: %{
-        static_current: url
-      },
-      license: %{
-        use_without_attribution: "no",
-        create_derived_product: "yes",
-        attribution_text: "https://dati.toscana.it/"
-      },
-      tags: %{
-        unstable_url: "true"
-      }
-    }
+    %DMFR{id: id(url), urls: %{static_current: url}}
   end
 
   defp ensure_download(url) do
