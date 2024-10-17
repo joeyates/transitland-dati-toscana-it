@@ -4,10 +4,10 @@ require Logger
 
 Mix.install([
   {:csv, ">= 0.0.0"},
+  {:ex_data_catalog, ">= 0.0.0"},
   {:geohash, "~> 1.0"},
   {:jason, ">= 0.0.0"},
-  {:req, ">= 0.0.0"},
-  {:sweet_xml, ">= 0.0.0"},
+  {:req, ">= 0.0.0"}
 ])
 
 Application.ensure_started(:geohash)
@@ -69,15 +69,15 @@ defmodule Feed do
   @feed_prefix "f"
   @default_geohash "s"
 
-  def dmfr(%__MODULE__{} = feed) do
-    ensure_download(feed)
-    ensure_extracted(feed)
+  def dmfr(url) do
+    ensure_download(url)
+    ensure_extracted(url)
 
     %{
-      id: id(feed),
+      id: id(url),
       spec: "gtfs",
       urls: %{
-        static_current: feed.url
+        static_current: url
       },
       license: %{
         use_without_attribution: "no",
@@ -90,32 +90,32 @@ defmodule Feed do
     }
   end
 
-  defp ensure_download(%__MODULE__{} = feed) do
-    zip_path = Downloads.path(feed.url)
+  defp ensure_download(url) do
+    zip_path = Downloads.path(url)
     if !File.exists?(zip_path) do
-      Logger.debug("Downloading: #{feed.url}")
-      Fetcher.fetch(feed.url, zip_path)
+      Logger.debug("Downloading: #{url}")
+      Fetcher.fetch(url, zip_path)
     end
   end
 
-  defp ensure_extracted(%__MODULE__{} = feed) do
-    extracted_path = Downloads.extracted_path(feed.url)
+  defp ensure_extracted(url) do
+    extracted_path = Downloads.extracted_path(url)
     if !File.exists?(extracted_path) do
-      zip_path = Downloads.path(feed.url)
+      zip_path = Downloads.path(url)
       Logger.debug("Extracting: #{zip_path}")
       Zip.extract(zip_path, extracted_path)
     end
   end
 
-  defp id(%__MODULE__{} = feed) do
-    geohash = geohash(feed)
-    name = Downloads.name(feed.url)
+  defp id(url) do
+    geohash = geohash(url)
+    name = Downloads.name(url)
     "#{@feed_prefix}-#{geohash}-#{name}"
   end
 
-  defp geohash(%__MODULE__{} = feed) do
+  defp geohash(url) do
     {{min_lat, min_lon}, {max_lat, max_lon}} =
-      bounds(feed)
+      bounds(url)
     bottom_left_geohash = Geohash.encode(min_lat, min_lon)
     top_right_geohash = Geohash.encode(max_lat, max_lon)
     case LongestCommonPrefix.find(bottom_left_geohash, top_right_geohash) do
@@ -124,8 +124,8 @@ defmodule Feed do
     end
   end
 
-  defp bounds(%__MODULE__{} = feed) do
-    feed.url
+  defp bounds(url) do
+    url
     |> Downloads.stops_path()
     |> File.stream!()
     |> CSV.decode!(headers: true)
@@ -140,19 +140,6 @@ defmodule Feed do
   end
 end
 
-defmodule Feeds do
-  import SweetXml, only: [sigil_x: 2]
-
-  def parse_dataset(xml) do
-    xml
-    |> SweetXml.xpath(
-      ~x"//rdf:RDF/dcat:Dataset/dcat:distribution/dcat:Distribution/dcat:accessURL/@rdf:resource"l
-    )
-    |> Enum.map(&to_string/1)
-    |> Enum.map(& %Feed{url: &1})
-  end
-end
-
 source_url = "https://dati.toscana.it/dataset/rt-oraritb.xml"
 source_path = Downloads.path(source_url)
 if !File.exists?(source_path) do
@@ -160,14 +147,11 @@ if !File.exists?(source_path) do
   Fetcher.fetch(source_url, source_path)
 end
 
-available =
-  source_path
-  |> File.read!()
-  |> Feeds.parse_dataset()
+catalog = ExDataCatalog.load(source_path)
 
 feeds =
-  Enum.map(available, fn feed ->
-    Feed.dmfr(feed)
+  Enum.map(catalog.distributions, fn distribution ->
+    Feed.dmfr(distribution.access_url)
   end)
 
 dmfr =
