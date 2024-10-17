@@ -222,10 +222,99 @@ feeds =
     end
   end)
 
+defmodule Historical do
+  def feeds do
+    [
+      %DMFR{
+        id: "f-spx-toremartoscanaregionalemarittimaspa",
+        urls: %{
+          static_current:
+            "https://dati.toscana.it/dataset/8bb8f8fe-fe7d-41d0-90dc-49f2456180d1/resource/56539a5a-e0be-49eb-b3ac-052a42ad0de0/download/toremar.gtfs.zip",
+          static_historic: [
+            "http://dati.toscana.it/dataset/8bb8f8fe-fe7d-41d0-90dc-49f2456180d1/resource/ad82f56d-7bd9-4695-bc56-4a0e134e09cf/download/toremar.gtfs"
+          ]
+        },
+        operators: [
+          %{
+            onestop_id: "o-spx-toremartoscanaregionalemarittimaspa",
+            name: "Toremar Toscana Regionale Marittima",
+            website: "http://www.toremar.it",
+            associated_feeds: [
+              %{
+                gtfs_agency_id: "205"
+              }
+            ]
+          }
+        ]
+      },
+      %DMFR{
+        id: "f-spzbz-gestspa",
+        urls: %{
+          static_current:
+            "http://dati.toscana.it/dataset/8bb8f8fe-fe7d-41d0-90dc-49f2456180d1/resource/aab11416-324e-4199-9ffc-857cc0599a2a/download/gest.gtfs"
+        },
+        operators: [
+          %{
+            onestop_id: "o-spzbz-gestspa",
+            name: "GEST S.p.A.",
+            short_name: "GEST",
+            website: "http://www.gestramvia.it",
+            associated_feeds: [
+              %{
+                gtfs_agency_id: "303"
+              }
+            ]
+          }
+        ]
+      },
+      %DMFR{
+        id: "f-spzc-ataf~linea",
+        urls: %{
+          static_current:
+            "http://dati.toscana.it/dataset/8bb8f8fe-fe7d-41d0-90dc-49f2456180d1/resource/ee55333c-fe53-4599-981d-389b13f28bb1/download/ataflinea.gtfs"
+        },
+        operators: [
+          %{
+            onestop_id: "o-spzc-ataf~linea",
+            name: "Azienda Trasporti Area Fiorentina",
+            short_name: "ATAF",
+            website: "http://www.ataf.net",
+            associated_feeds: [
+              %{
+                gtfs_agency_id: "172"
+              }
+            ]
+          }
+        ]
+      },
+      %DMFR{
+        id: "f-sr8-tftspa",
+        urls: %{
+          static_current:
+            "http://dati.toscana.it/dataset/8bb8f8fe-fe7d-41d0-90dc-49f2456180d1/resource/0a8e7c64-2314-4732-849a-67746b8a0eba/download/tft.gtfs"
+        },
+        operators: [
+          %{
+            onestop_id: "o-sr8-tftspa",
+            name: "Trasporto Ferroviario Toscano",
+            short_name: "TFT",
+            website: "http://www.trasportoferroviariotoscano.it",
+            associated_feeds: [
+              %{
+                gtfs_agency_id: "196"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  end
+end
+
 dmfr =
   %{
     "$schema": "https://dmfr.transit.land/json-schema/dmfr.schema-v0.5.0.json",
-    feeds: feeds,
+    feeds: feeds ++ Historical.feeds(),
     license_spdx_identifier: "CDLA-Permissive-1.0"
   }
   |> Jason.encode!(pretty: true)
